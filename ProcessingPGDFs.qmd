@@ -1,0 +1,129 @@
+---
+title: "Processing PAMGuard Data Files"
+---
+
+## Introductions
+
+Various modules in PAMGuard produce binary files. Custom libraries written in MATLAB, R and Python exist to help you further process these files. In this tutorial, we will process a folder of **Click Detector** binary files, count clicks per minute and create a concatenated string of porpoise detections.
+
+::: callout-note
+### Version
+NOTE ABOUT VERSIONS
+:::
+
+::: callout-warning
+This tutorial is for Windows users. If you use MacOS or any Linux distribution, you may still follow this tutorial but alter file paths accordingly.
+:::
+
+INSTRUCTIONS ON INSTALLING THE SOFTWARE
+
+### Exercise 1: Detect Porpoise Clicks
+
+### Exercise 2: Open the Click Detector Binary File
+
+Having created the binary file outputs for the data using the Click Detector module, you will now open these files in your preferred programming language. You will load all click data into a variable `clicks`.
+
+::: panel-tabset
+## MATLAB
+
+Below, we use `loadPamguardBinaryFile()` to load the click file into a data array `clicks` and metadata object `fileInfo`. The `clicks` variable is an array of data elements (clicks) in the binary file.
+
+::: callout-note
+## Accessing array elements in MATLAB
+To access elements from an array in MATLAB you must use curved brackets starting at index one `(1)`, unlike most languages which use square backets from index zero `[0]`.
+:::
+
+```MATLAB
+[clicks, fileInfo] = loadPamguardBinaryFile("\enter\your\path\PamguardDevelopment\Binary\20120629\Click_Detector_Click_Detector_Clicks_20120629_094025.pgdf")
+
+% get and print the first click
+firstClick = clicks(1)
+disp(firstClick)
+
+% get and print startSample of the first click
+firstClickStartSample = clicks(1).startSample
+disp(firstClickStartSample)
+```
+
+To check that the file you have loaded is correctly a click detector you can access the file 
+
+## R
+
+In R, we use `loadPamguardBinaryFile()` to load all contents of the processed data file into a single `clickFile` object. The `clickFile$data` attribute produces an array of data elements (clicks) in the binary file.
+
+```R
+library(PamBinaries)
+clickFile <- loadPamguardBinaryFile("\enter\your\path\PamguardDevelopment\Binary\20120629\Click_Detector_Click_Detector_Clicks_20120629_094025.pgdf")
+clicks = clickFile$data
+
+# get the first click
+firstClick <- clicks[[0]]
+print(firstClick)
+
+# get startSample of the first click
+firstClickStartSample <- clicks[[0]]$startSample
+print(firstClickStartSample)
+```
+
+## Python
+
+In Python we use `load_pamguard_binary_file()` to load all contents of the processed data file into a single `click_file` object. The `click_file.data` attribute produces an array of all data elements (clicks) in the binary file.
+
+::: callout-note
+## Python notation
+In Python we use `snake_case` rather than `camelCase` (as used in MATLAB and R) to write out phrases such as variable and method names.
+:::
+
+```Python
+from pypamguard import load_pamguard_binary_file
+click_file = load_pamguard_binary_file("\enter\your\path\PamguardDevelopment\Binary\20120629\Click_Detector_Click_Detector_Clicks_20120629_094025.pgdf")
+clicks = click__file.data
+
+// get the first click
+first_click = clicks[0]
+print(first_click)
+
+// get startSample of the first click
+first_click_start_sample = clicks[0].start_sample
+print(first_click_start_sample)
+```
+:::
+
+## Exercise 3: Plotting Waveform Data
+
+Now that we have loaded in the data files into a more workable data structure, we will plot the the waveform data of the first click. You can build off of the code from exercise 1.
+
+::: callout-note
+Depending on how you set-up PAMGuard, the exact plots shown in this tutorial may not match those that you produce yourself. So long as you understand what the code is doing, this is not a problem.
+:::
+
+::: panel-tabset
+## MATLAB
+MATLAB has an in-built method `plot()` that simplifies plotting the waveform data. 
+
+```MATLAB
+waveFormData=clicks(1).wave;
+plot(waveFormData)
+```
+
+::: callout-note
+Note that there may be more than one waveform in single click detection. This is because channels within the click detector can be grouped together. e.g. for a typical towed array survey where the two hydrophone elements within the towed array are close together, those two channels will be grouped- hence a single click detection would have two sets of waveform information, one for channel 0 and one for channel 1.
+:::
+
+![Waveform MATLAB](public/waveform-matlab.png)
+
+## R
+R has an in-built method `plot()` that simplifies plotting the waveform data. We need to create the x-axis manually by creating an array of integers `x` from 1 to the length of the waveform data. The use of the index `[,1]` cuts down a potential multi-channel waveform into a single-channel waveform of the lowest channel number.
+```R
+wave = clicks[0]$wave[,1]
+x <-1:length(aclick$wave[,1])
+plot(x, aclick$wave[,1], type = "l", lty = 1, col="red")
+```
+
+![Waveform R](public/waveform-r.png)
+
+## Python
+
+In python the `matplotlib` library is required to plot data. 
+
+:::
