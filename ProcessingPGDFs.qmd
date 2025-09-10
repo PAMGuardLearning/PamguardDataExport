@@ -8,6 +8,7 @@ Various modules in PAMGuard produce binary files. Custom libraries written in MA
 
 ::: callout-note
 ### Version
+
 NOTE ABOUT VERSIONS
 :::
 
@@ -17,22 +18,22 @@ This tutorial is for Windows users. If you use MacOS or any Linux distribution, 
 
 INSTRUCTIONS ON INSTALLING THE SOFTWARE
 
-
 ### Exercise 1: Open a Click Detector Binary File
 
 For the first exercise of this tutorial, you will open a click detector binary file from the folder Data/porpoise_data/Binary/20130710/. This contains 26 files: thirteen data files (.pgdf) and thirteen index files (.pgdx). You will concern yourself solely with the thirteen data files (.pgdf). Select one of these files which you will open and process; then follow the instructions for your preferred programming language below.
 
-::: panel-tabset
+::::: panel-tabset
 ## MATLAB
 
 Below, we use `loadPamguardBinaryFile()` to load the click file into a data array `clicks` and metadata object `fileInfo`. The `clicks` variable is an array of data elements (clicks) in the binary file.
 
 ::: callout-note
 ## Accessing array elements in MATLAB
+
 To access elements from an array in MATLAB you must use curved brackets starting at index one `(1)`, unlike most languages which use square backets from index zero `[0]`.
 :::
 
-```MATLAB
+``` matlab
 [clicks, fileInfo] = loadPamguardBinaryFile("\enter\your\path\PamguardDevelopment\Binary\20120629\Click_Detector_Click_Detector_Clicks_20120629_094025.pgdf")
 
 % get and print the first click
@@ -44,13 +45,13 @@ firstClickStartSample = clicks(1).startSample
 disp(firstClickStartSample)
 ```
 
-To check that the file you have loaded is correctly a click detector you can access the file 
+To check that the file you have loaded is correctly a click detector you can access the file
 
 ## R
 
 In R, we use `loadPamguardBinaryFile()` to load all contents of the processed data file into a single `clickFile` object. The `clickFile$data` attribute produces an array of data elements (clicks) in the binary file.
 
-```R
+``` r
 library(PamBinaries)
 clickFile <- loadPamguardBinaryFile("\enter\your\path\PamguardDevelopment\Binary\20120629\Click_Detector_Click_Detector_Clicks_20120629_094025.pgdf")
 clicks = clickFile$data
@@ -70,10 +71,11 @@ In Python we use `load_pamguard_binary_file()` to load all contents of the proce
 
 ::: callout-note
 ## Python notation
+
 In Python we use `snake_case` rather than `camelCase` (as used in MATLAB and R) to write out phrases such as variable and method names.
 :::
 
-```Python
+``` python
 from pypamguard import load_pamguard_binary_file
 click_file = load_pamguard_binary_file("\enter\your\path\PamguardDevelopment\Binary\20120629\Click_Detector_Click_Detector_Clicks_20120629_094025.pgdf")
 clicks = click__file.data
@@ -86,7 +88,7 @@ print(first_click)
 first_click_start_sample = clicks[0].start_sample
 print(first_click_start_sample)
 ```
-:::
+:::::
 
 ## Exercise 2: Plotting Waveform Data
 
@@ -96,11 +98,12 @@ Now that we have loaded in the data files into a more workable data structure, w
 Depending on how you set-up PAMGuard, the exact plots shown in this tutorial may not match those that you produce yourself. So long as you understand what the code is doing, this is not a problem.
 :::
 
-::: panel-tabset
+:::::: panel-tabset
 ## MATLAB
-MATLAB has an in-built method `plot()` that simplifies plotting the waveform data. 
 
-```MATLAB
+MATLAB has an in-built method `plot()` that simplifies plotting the waveform data.
+
+``` matlab
 waveFormData=clicks(1).wave;
 plot(waveFormData)
 ```
@@ -112,8 +115,10 @@ Note that there may be more than one waveform in single click detection. This is
 ![Waveform MATLAB](public/waveform-matlab.png)
 
 ## R
+
 R has an in-built method `plot()` that simplifies plotting the waveform data. We need to create the x-axis manually by creating an array of integers `x` from 1 to the length of the waveform data. The use of the index `[,1]` cuts down a potential multi-channel waveform into a single-channel waveform of the lowest channel number.
-```R
+
+``` r
 wave = clicks[0]$wave[,1]
 x <-1:length(aclick$wave[,1])
 plot(x, aclick$wave[,1], type = "l", lty = 1, col="red")
@@ -129,22 +134,23 @@ In Python the `matplotlib` library is required to plot data. The code below will
 Import matplotlib using `pip install matplotlib` in the command line / terminal. If you do not have matplotlib installed the following code will not work for you.
 :::
 
-```python
+``` python
 import matplotlib.pyplot as plt
 # code from previous exercise goes here
 plt.plot(clicks[0].wave[0])
 plt.savefig('plot.png')
 ```
 
-The code above will have saved the plot in a PNG file `plot.png` within your current working directory. 
+The code above will have saved the plot in a PNG file `plot.png` within your current working directory.
 
 ![Waveform Python](public/waveform-python.png)
 
 ::: callout-tip
 # Plotting multiple channels
+
 The code above plots the first channel from the waveform data of the click. A click may have one or more channels (`clicks[0].wave` is a 2-dimensional array, as such). You can write a for-loop, as shown below, to plot all the separate channels together. In the event that the click only has one channel, both code snippets shown in this exercise achieve the exact same thing.
 
-```python
+``` python
 import matplotlib.pyplot as plt
 # code from previous exercise goes here
 for chan in clicks[0].wave:
@@ -152,27 +158,26 @@ for chan in clicks[0].wave:
 plt.savefig('plot.png')
 ```
 :::
-
-:::
+::::::
 
 ## Exercise 3: Load a Folder of Click Files and Count the Classified Clicks
 
-So far, we have opened one of the thirteen click files. In reality we want to deal with any number of files in a folder. In this exercise, we will read all thirteen binary files at once and count the number of classified clicks. 
+So far, we have opened one of the thirteen click files. In reality we want to deal with any number of files in a folder. In this exercise, we will read all thirteen binary files at once and count the number of classified clicks.
 
 ::: callout-note
 # Classified click definition
+
 `clicks[0]` is considered a classified click when `clicks[0].type == 1`.
 :::
 
 ### Method 1: loading files individually into memory (recommended)
 
-::: panel-tabset
-
+:::::: panel-tabset
 ### MATLAB
 
 First, create an array of the files within your desired folder. The folder that you should load is the same of that which contained the click file in exercise 1. When we use the `fullFile()` method we pass in a file name mask `*.pgdf` to filter the files to only those with a .pgdf extension.
 
-```MATLAB
+``` matlab
 folderName = '/path/to/Data/porpoise_data/Binary/';
 binaryFiles = dir(fullFile(folderName, '*.pgdf'));
 ```
@@ -183,7 +188,7 @@ The variable `binaryFiles` is an array of MATLAB structures, each of which conta
 
 Now we must create a for loop to go through each of the files in `binaryFiles`, and load them in using `loadPamguardBinaryFile()` (as in exercises 1 and 2).
 
-```matlab
+``` matlab
 for i = 1:length(binaryFiles)
     filePath = fullFile(folderName, binaryFiles(i).name);
     clicks = loadPamguardBinaryFile(filePath);
@@ -194,7 +199,7 @@ This code achieves very little. Each time we load one of the files, it is almost
 
 Now we will use a nested loop to count the number of porpoise clicks there exist in all thirteen data files in the folder. We use a technique called nested looping here to increment a global counter. The outer loop (where `i` is incremented) goes through all the files, and the inner loop (where `j` is incremented) goes through all the clicks in each file to check whether they are classified or not.
 
-```matlab
+``` matlab
 count = 0;
 for i = 1:length(binaryFiles)
     filePath = fullFile(folderName, binaryFiles(i).name);
@@ -207,23 +212,22 @@ for i = 1:length(binaryFiles)
 end
 ```
 
-
 ### R
 
 First, create an array of the files within your desired folder. The folder that you should load is the same of that which contained the click file in exercise 1. We use the in-built method `list.files()` with a pattern `\\.pgdf$` to mask the files.
 
-```r
+``` r
 folderName = '/path/to/Data/porpoise_data/Binary/';
 fileNames <- list.files(folderName, pattern = "\\.pgdf$")
 ```
 
 ::: callout-note
-The variable `fileNames` is an array of file names (as strings). This allows us to open up the files one-at-a-time to prevent excessive memory usage. 
+The variable `fileNames` is an array of file names (as strings). This allows us to open up the files one-at-a-time to prevent excessive memory usage.
 :::
 
 Now we must create a for-loop to go through each of the files represented by file names in `fileNames`, and load them in using `loadPamguardBinaryFile()` (as in exercises 1 and 2).
 
-```r
+``` r
 for (fileName in fileNames) {
     # load each click file.
     clicks <- loadPamguardBinaryFile(file.path(folder, fileName));  
@@ -234,7 +238,7 @@ This code achieves very little. Each time we load one of the files, it is almost
 
 Now we will use a nested loop to count the number of porpoise clicks there exist in all thirteen data files in the folder. We use a technique called nested looping here to increment a global counter. The outer loop goes through all the files, and the inner loop goes through all the clicks in each file to check whether they are classified or not.
 
-```r
+``` r
 count = 0;
 for (fileName in fileNames) {
     # load each click file.
@@ -252,19 +256,19 @@ for (fileName in fileNames) {
 
 First, create an array of the files within your desired folder. The folder that you should load is the same of that which contained the click file in exercise 1. We use the native Python library `pathlib` to list all files within a folder (using the `Path` class), and mark them using the mask `*.pgdf`.
 
-```python
+``` python
 import pathlib, pypamguard
 folder_name = '../Data/porpoise_data/Binary/20130710'
 file_names = pathlib.Path(folder_name).glob('*.pgdf')
 ```
 
 ::: callout-note
-The variable `file_names` is an array of file names (as strings). This allows us to open up the files one-at-a-time to prevent excessive memory usage. 
+The variable `file_names` is an array of file names (as strings). This allows us to open up the files one-at-a-time to prevent excessive memory usage.
 :::
 
 Now we must create a for-loop to go through each of the files in `file_names`, and load them in using `load_pamguard_binary_file()` (as in exercises 1 and 2).
 
-```python
+``` python
 # code to create file_names variable goes here
 for file_name in file_names:
     clicks = pypamguard.load_pamguard_binary_file(pathlib.Path(file_name))
@@ -274,7 +278,7 @@ This code achieves very little. Each time we load one of the files, it is almost
 
 Now we will use a nested loop to count the number of porpoise clicks there exist in all thirteen data files in the folder. We use a technique called nested looping here to increment a global counter. The outer loop goes through all the files, and the inner loop goes through all the clicks in each file to check whether they are classified or not.
 
-```python
+``` python
 # code to create file_names variable goes here
 count = 0;
 for file_name in file_names:
@@ -283,9 +287,7 @@ for file_name in file_names:
         if click.type == 1:
             count += 1;
 ```
-
-:::
-
+::::::
 
 ### Method 2: loading all data into memory at once (memory intensive)
 
@@ -293,14 +295,14 @@ Each library has a function you can use to load all the files in a folder into m
 
 ::: callout-warning
 # Use at own risk
+
 The method to load all files in the folder into memory at once places a heavy burden on your computer's memory. Only use this function if you are processing a small number of files, or are pre-filtering them significantly (we do not cover that in this tutorial).
 :::
 
 ::: panel-tabset
-
 ## MATLAB
 
-```matlab
+``` matlab
 folderName = '/path/to/Data/porpoise_data/Binary/';
 clicksAll = loadPamguardBinaryFolder(folderName);
 count = 0;
@@ -313,7 +315,7 @@ end
 
 ## R
 
-```r
+``` r
 folderName = '/path/to/Data/porpoise_data/Binary/';
 clicksAll = loadPamguardBinaryFolder(folderName);
 count = 0;
@@ -326,7 +328,7 @@ for (click in clicksAll$data) {
 
 ## Python
 
-```python
+``` python
 import pypamguard
 folder_name = '../Data/porpoise_data/Binary/20130710'
 clicks_all = pypamguard.load_pamguard_binary_folder(folder_name)
@@ -335,5 +337,255 @@ for click in clicks_all.data:
     if click.type == 1:
         count += 1
 ```
-
 :::
+
+## Exercise 4: Loading Whistle Files
+
+In this exercise we will open another type of file: the whistle file. This differs from click data as it is produced by the [PAMGuard Whistle and Moan Detector](). It will become quite obvious the similarities and differences between the click detector and whistle files.
+
+::: callout-note
+# Fun fact
+
+PAMGuard has a large number of modules. Each module produces different kinds of data, each of which can be read into the R, MATLAB or Python libraries for reading PAMGuard data files. This tutorial, which concerns the Click Detector and Whistle and Moan Detector, only scratches the surface of what PAMGuard, and these data file readers are capable of.
+:::
+
+You will open the file stored at Data/whistle binary/Binary/20190403/WhistlesMoans_Whistle_and_Moan_Detector_Contours_20190403_133052.pgdf in your preferred programming language. Depending on the [working directory]() of your terminal or editor, you may need to adjust the relative path of the data file.
+
+::: panel-tabset
+## MATLAB
+
+``` matlab
+[data, fileInfo] = loadPamguardBinaryFile("./Data/whistle binary/Binary/20190403/WhistlesMoans_Whistle_and_Moan_Detector_Contours_20190403_133052.pgdf")
+```
+
+The `data` struct produced by the code above will contain at least the following attributes. Please familiarise yourself with them, before continuing on to the next section.
+
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| MATLAB        | Meaning                                                                                                                                                                                                |
++===============+========================================================================================================================================================================================================+
+| `millis`      | The start time of the whistle in milliseconds.                                                                                                                                                         |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `startSample` | The first sample of the whistle often used for finer-scale time delay measurements.                                                                                                                    |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `uid`         | A unique identifier for the whistle.                                                                                                                                                                   |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `channelMap`  | The channel map for this whistle (one integer, made up of 32 bits, where each bit has a value 0 or 1 specifying the existence of that channel in the `contour`.                                        |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `nSlices`     | The number of slices the whistle's `contour` is created from.                                                                                                                                          |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `amplitude`   | The amplitude of the whistle.                                                                                                                                                                          |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `sliceData`   | An array of contour slices, with each slice `x` containing:                                                                                                                                            |
+|               |                                                                                                                                                                                                        |
+|               | -   `sliceData(x).sliceNumber`: book-keeping;                                                                                                                                                          |
+|               |                                                                                                                                                                                                        |
+|               | -   `sliceData(x).nPeaks`: number of peaks;                                                                                                                                                            |
+|               |                                                                                                                                                                                                        |
+|               | -   `sliceData(x).peakData`: peak data;                                                                                                                                                                |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `contour`     | An array of the same length as `sliceData` where each element `contour(x)` is the first frequency peak which defines the contour (`sliceData(x).peakData(2,1)`).                                       |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `contWidth`   | An array of the same length as `sliceData` where each element `contWidth(x)` is the width of the first frequency peak in that contour slice (`sliceData(x).peakData(3,1)-sliceData(x).peakData(1,1)`). |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+## R
+
+``` r
+library(PamBinaries)
+binaryFile <- loadPamguardBinaryFile("./Data/whistle binary/Binary/20190403/WhistlesMoans_Whistle_and_Moan_Detector_Contours_20190403_133052.pgdf")
+data = clickFile$data
+```
+
+The `data` variable produced by the code above will contain at least the following attributes. Please familiarise yourself with them, before continuing on to the next section.
+
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| R             | Meaning                                                                                                                                                                                                                  |
++===============+==========================================================================================================================================================================================================================+
+| `millis`      | The start time of the whistle in milliseconds.                                                                                                                                                                           |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `startSample` | The first sample of the whistle often used for finer-scale time delay measurements.                                                                                                                                      |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `uid`         | A unique identifier for the whistle.                                                                                                                                                                                     |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `channelMap`  | The channel map for this whistle (one integer, made up of 32 bits, where each bit has a value 0 or 1 specifying the existence of that channel in the `contour`.                                                          |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `nSlices`     | The number of slices the whistle's `contour` is created from.                                                                                                                                                            |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `amplitude`   | The amplitude of the whistle.                                                                                                                                                                                            |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `sliceData`   | TODO: CONFIRM - An array of contour slices, with each slice `x` containing:                                                                                                                                              |
+|               |                                                                                                                                                                                                                          |
+|               | -   `sliceData[x]$sliceNumber`: book-keeping;                                                                                                                                                                            |
+|               |                                                                                                                                                                                                                          |
+|               | -   `sliceData[x]$nPeaks`: number of peaks;                                                                                                                                                                              |
+|               |                                                                                                                                                                                                                          |
+|               | -   `sliceData[x]$peakData`: peak data;                                                                                                                                                                                  |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `contour`     | TODO: CONFIRM - An array of the same length as `sliceData` where each element `contour(x)` is the first frequency peak which defines the contour (`sliceData[x]$peakData[0][1]`).                                        |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `contWidth`   | TODO: CONFIRM - An array of the same length as `sliceData` where each element `contWidth(x)` is the width of the first frequency peak in that contour slice (`sliceData(x)$peakData[0][2]-sliceData(x)$peakData[0][0]`). |
++---------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+## Python
+
+``` python
+import pypamguard
+binaryFile = pypamguard.load_pamguard_binary_file("./Data/whistle binary/Binary/20190403/WhistlesMoans_Whistle_and_Moan_Detector_Contours_20190403_133052.pgdf")
+data = binaryFile.data
+```
+
+The `data` variable produced by the code above will contain at least the following attributes. Please familiarise yourself with them, before continuing on to the next section.
+
++-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Python          | Meaning                                                                                                                                                         |
++=================+=================================================================================================================================================================+
+| `millis`        | The start time of the whistle in milliseconds.                                                                                                                  |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `start_sample`  | The first sample of the whistle often used for finer-scale time delay measurements.                                                                             |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `uid`           | A unique identifier for the whistle.                                                                                                                            |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `channel_map`   | The channel map for this whistle (one integer, made up of 32 bits, where each bit has a value 0 or 1 specifying the existence of that channel in the `contour`. |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `n_slices`      | The number of slices the whistle's `contour` is created from.                                                                                                   |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `amplitude`     | The amplitude of the whistle.                                                                                                                                   |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `slice_numbers` | An array of numbers: each element `slice_numbers[x]` containing a book-keeping number for a slice.                                                              |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `n_peaks`       | A parallel array to `slice_numbers`, each element `n_peaks[x]` containing the number of peaks in that slice.                                                    |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `peak_data`     | A parallel array to `slice_numbers`, each element `peak_data[x]` containing a sub-array of peak frequency-related data for that slice.                          |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `contour`       | A parallel array to `slice_numbers`, each element `contour[x]` containing the peak frequency of that slice (`peak_data[x][1]`).                                 |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| `cont_width`    | A parallel array to `slice_numbers`, each element `slice_numbers[x]` containing the frequency width of that slice (`peak_data[x][2] - peak_data[x][0]`).        |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+:::
+
+## Exercise 5: Plotting Whistle Contours
+
+We will now plot all the whistle contours on a graph with each contour starting at `x = 0`. This is a neat way to visualise whistle detections and shows a snapshot of the whistle distribution with frequency.
+
+::::: panel-tabset
+#### MATLAB
+
+To do this, we loop through each of the whistles in `data`, plotting the peak frequencies from the `contour` attribute of each struct.
+
+::: callout-note
+###### Calculating the true frequency of each contour
+
+We use user-defined `sampleRate` and `fftLength` variables to calculate the true frequency of each peak frequency data point in the contour.
+:::
+
+::: callout-tip
+###### Plotting more than one line on the same graph
+
+The `hold on;` and `hold off;` statements provide a way to plot a lot of data on the same plot.
+:::
+
+``` matlab
+% Code from the previous exercise goes here
+sampleRate = 96000;
+fftLength = 1024;
+hold on;
+for i = 1:min([length(data) 1000])
+    contour = data(i).contour * sampleRate / fftLength;
+    myplot(i) = plot(contour, 'g', 'LineWidth', 0.5);
+    disp(['Plotting whislte ' num2str(i) ' of ' num2str(length(data))])
+end
+hold off;
+xlabel('slice')
+ylabel('frequency (Hz)')
+```
+
+Execution of this code should produce a graph that looks something like this.
+
+![](./public/whistle-contour-plot-matlab.png)
+
+#### R
+
+To do this, we loop through each of the whistles in the `data` variable, plotting the peak frequencies from the `contour` attribute of each object.
+
+```r
+# Code from the previous exercise goes here
+# Put some code here
+```
+
+Execution of this code should produce a graph that looks something like this.
+
+#### Python
+
+To do this, we loop through each of the whistles in the `data` 
+
+```python
+import matplotlib.pyplot as plt
+# Code from the previous exercise goes here
+
+sample_rate = 96000
+fft_length = 1024
+
+for whistle in binaryFile.data:
+    contour = whistle.contour * sample_rate / fft_length
+    plt.plot(contour)
+plt.savefig()
+```
+
+Execution of this code should produce a graph that looks something like this.
+
+:::::
+
+## Exercise 6: Creating a Long Term Spectral Average
+
+A long term spectral average (LTSA) can be very useful for getting a quick overview of long time periods of acoustic data. PAMGuard can produce an LTSA analysis, and output such data to a PAMGuard binary file.
+
+::: callout-tip
+Try to generate some LTSA data in PAMGuard. This is well beyond the scope of this tutorial, however can give you great insights into the origins of the data you will process in this exercise.
+:::
+
+We will be working with LTSA data found in the Data/LTSA/ folder. There are multiple data files in this folder, because PAMGuard has purposely split-up data to ensure small manageable files. We will load the entire folder at once, allowing all the requested LTSA data to be plotted at once.
+
+:::::: panel-tabset
+
+### MATLAB
+
+```matlab
+import pgmatlab;
+
+day_start = '10-07-2013 08:30:00';
+day_end = '10-07-2013 14:30:00';
+channel = 5;
+
+ltsa = loadPamguardBinaryFolder("./Data/LTSA/Binary", 'timerange', [day_start day_end], 'channel', 5 );
+
+n = 1;
+ltsa_spectrum;
+
+for i = 1 : (length(ltsa) - 1)
+    ltsa_spectrum(:, n) = ltsa(i).data(:,k)
+end
+
+```
+
+### R
+
+Not too sure
+
+### Python
+
+```python
+import pypamguard
+start = ""
+end = ""
+channel = 5
+ltsa, _, _ = pypamguard.load_pamguard_binary_folder("./Data/LTSA/Binary")
+
+for i in range(ltsa):
+    pass
+```
+
+::::::
+
+## You're Done
+
+You should now have the basic skills to load binary files and folders in MATLAB, R and/or Python. The scope of the libraries provided for each of these language are so much larger than what we have explored in this tutorial. 
