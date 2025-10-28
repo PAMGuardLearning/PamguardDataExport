@@ -104,8 +104,12 @@ Depending on how you set-up PAMGuard, the exact plots shown in this tutorial may
 MATLAB has an in-built method `plot()` that simplifies plotting the waveform data.
 
 ``` matlab
-waveFormData=clicks(1).wave;
+%Get the 28th click - note that MATLAB counts from one
+waveFormData=clicks(28).wave;
 plot(waveFormData)
+xlabel('Samples')
+ylabel('Linear amplitude')
+set(gca, 'FontSize', 14)
 ```
 
 ::: callout-note
@@ -119,6 +123,7 @@ Note that there may be more than one waveform in single click detection. This is
 R has an in-built method `plot()` that simplifies plotting the waveform data. We need to create the x-axis manually by creating an array of integers `x` from 1 to the length of the waveform data. The use of the index `[,1]` cuts down a potential multi-channel waveform into a single-channel waveform of the lowest channel number.
 
 ``` r
+#Get the 28th click - note that R counts from one
 wave = clicks[28]$wave[,1]
 x <-1:length(aclick$wave[,1])
 plot(x, aclick$wave[,1], type = "l", lty = 1, col="red")
@@ -137,7 +142,8 @@ Import matplotlib using `pip install matplotlib` in the command line / terminal.
 ``` python
 import matplotlib.pyplot as plt
 # code from previous exercise goes here
-plt.plot(clicks[28].wave[0])
+#Get the 28th click - note that Python counts from zero
+plt.plot(clicks[27].wave[0])
 plt.savefig('plot.png')
 ```
 
@@ -304,7 +310,7 @@ The method to load all files in the folder into memory at once places a heavy bu
 
 ``` matlab
 folderName = '/path/to/Data/porpoise_data/Binary/';
-clicksAll = loadPamguardBinaryFolder(folderName);
+clicksAll = loadPamguardBinaryFolder(folderName, "Click_Detector_Click_Detector_Clicks_*.pgdf");
 count = 0;
 for i = 1:length(clicksAll)
     if (clicksAll(i).type == 1)
@@ -494,9 +500,11 @@ for i = 1:min([length(data) 1000])
     myplot(i) = plot(contour, 'g', 'LineWidth', 0.5);
     disp(['Plotting whislte ' num2str(i) ' of ' num2str(length(data))])
 end
+ylim([0,48000]);
 hold off;
-xlabel('slice')
-ylabel('frequency (Hz)')
+xlabel('Time (slices)')
+ylabel('Frequency (Hz)')
+set(gca, 'FontSize', 14)
 ```
 
 Execution of this code should produce a graph that looks something like this.
@@ -525,13 +533,26 @@ import matplotlib.pyplot as plt
 sample_rate = 96000
 fft_length = 1024
 
-for whistle in binaryFile.data:
-    contour = whistle.contour * sample_rate / fft_length
-    plt.plot(contour)
-plt.savefig()
+
+plt.figure(figsize=(8, 8))
+
+num_contours = min(len(binaryFile.data), 1000)
+
+for whistle in binaryFile.data[:num_contours]:
+    contour = whistle.contour * (sample_rate / fft_length)
+    plt.plot(contour, color='lawngreen', alpha=0.2)
+plt.xlabel('Time (slices)')         # Set your desired x-axis label
+plt.ylabel('Frequency (Hz)')        # Set your desired y-axis label
+
+plt.xlim(0, 100)    # Set x-axis limits from 0 to 100 (change as needed)
+plt.ylim(0, 50000)   # Set y-axis limits from 0 to 50000 Hz (change as needed)
+
+plt.show()
 ```
 
 Execution of this code should produce a graph that looks something like this.
+
+![](./public/whistle-contour-plot-python.png)
 
 :::::
 
@@ -540,7 +561,7 @@ Execution of this code should produce a graph that looks something like this.
 A long term spectral average (LTSA) can be very useful for getting a quick overview of long time periods of acoustic data. PAMGuard can produce an LTSA analysis, and output such data to a PAMGuard binary file.
 
 ::: callout-tip
-Try to generate some LTSA data in PAMGuard. This is well beyond the scope of this tutorial, however can give you great insights into the origins of the data you will process in this exercise.
+Other tutorials on the PAMGuard website have step by step guides on how to use PAMGuard to generate long term spectral averages. 
 :::
 
 We will be working with LTSA data found in the Data/LTSA/ folder. There are multiple data files in this folder, because PAMGuard has purposely split-up data to ensure small manageable files. We will load the entire folder at once, allowing all the requested LTSA data to be plotted at once.
@@ -588,4 +609,4 @@ for i in range(ltsa):
 
 ## You're Done
 
-You should now have the basic skills to load binary files and folders in MATLAB, R and/or Python. The scope of the libraries provided for each of these language are so much larger than what we have explored in this tutorial. 
+You should now have the basic skills to load binary files and folders in MATLAB, R and/or Python. We have only explored a few examples here but you should now have a good understanding of the capabilities of these libraries and understand how they can be useful for analysis of results, creating plots for papers and further analysis outwith PAMGuard. 
