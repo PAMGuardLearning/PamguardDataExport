@@ -401,7 +401,7 @@ The `data` struct produced by the code above will contain at least the following
 ``` r
 library(PamBinaries)
 binaryFile <- loadPamguardBinaryFile("./Data/whistle binary/Binary/20190403/WhistlesMoans_Whistle_and_Moan_Detector_Contours_20190403_133052.pgdf")
-data = clickFile$data
+data = binaryFile$data
 ```
 
 The `data` variable produced by the code above will contain at least the following attributes. Please familiarise yourself with them, before continuing on to the next section.
