@@ -13,7 +13,7 @@ NOTE ABOUT VERSIONS
 :::
 
 ::: callout-warning
-This tutorial is for Windows users. If you use MacOS or any Linux distribution, you may still follow this tutorial but alter file paths accordingly.
+This tutorial uses example path names from both Windows and macOS/Linux. Make sure you alter path names accordingly for all exercises
 :::
 
 INSTRUCTIONS ON INSTALLING THE SOFTWARE
@@ -34,7 +34,9 @@ To access elements from an array in MATLAB you must use curved brackets starting
 :::
 
 ``` matlab
-[clicks, fileInfo] = loadPamguardBinaryFile("\enter\your\path\PamguardDevelopment\Binary\20120629\Click_Detector_Click_Detector_Clicks_20120629_094025.pgdf")
+import pgmatlab.*;
+
+[clicks, fileInfo] = pgmatlab.loadPamguardBinaryFile("\enter\your\path\PamguardDevelopment\Binary\20120629\Click_Detector_Click_Detector_Clicks_20120629_094025.pgdf")
 
 % get and print the first click
 firstClick = clicks(1)
@@ -77,6 +79,7 @@ In Python we use `snake_case` rather than `camelCase` (as used in MATLAB and R) 
 
 ``` python
 from pypamguard import load_pamguard_binary_file
+
 click_file = load_pamguard_binary_file("\enter\your\path\PamguardDevelopment\Binary\20120629\Click_Detector_Click_Detector_Clicks_20120629_094025.pgdf")
 clicks = click__file.data
 
@@ -142,7 +145,7 @@ Import matplotlib using `pip install matplotlib` in the command line / terminal.
 ``` python
 import matplotlib.pyplot as plt
 # code from previous exercise goes here
-#Get the 28th click - note that Python counts from zero
+#Get the 28th click - note that Python counts from zero so the index is 27
 plt.plot(clicks[27].wave[0])
 plt.savefig('plot.png')
 ```
@@ -361,7 +364,8 @@ You will open the file stored at Data/whistle binary/Binary/20190403/WhistlesMoa
 ## MATLAB
 
 ``` matlab
-[data, fileInfo] = loadPamguardBinaryFile("./Data/whistle binary/Binary/20190403/WhistlesMoans_Whistle_and_Moan_Detector_Contours_20190403_133052.pgdf")
+import pgmatlab.*;
+[data, fileInfo] = pgmatlab.loadPamguardBinaryFile("./Data/whistle binary/Binary/20190403/WhistlesMoans_Whistle_and_Moan_Detector_Contours_20190403_133052.pgdf");
 ```
 
 The `data` struct produced by the code above will contain at least the following attributes. Please familiarise yourself with them, before continuing on to the next section.
@@ -491,6 +495,8 @@ The `hold on;` and `hold off;` statements provide a way to plot a lot of data on
 :::
 
 ``` matlab
+%% Exercise 5
+figure
 % Code from the previous exercise goes here
 sampleRate = 96000;
 fftLength = 1024;
@@ -505,6 +511,7 @@ hold off;
 xlabel('Time (slices)')
 ylabel('Frequency (Hz)')
 set(gca, 'FontSize', 14)
+
 ```
 
 Execution of this code should produce a graph that looks something like this.
@@ -573,20 +580,56 @@ We will be working with LTSA data found in the Data/LTSA/ folder. There are mult
 ```matlab
 import pgmatlab;
 
-day_start = '10-07-2013 08:30:00';
-day_end = '10-07-2013 14:30:00';
-channel = 5;
 
-ltsa = loadPamguardBinaryFolder("./Data/LTSA/Binary", 'timerange', [day_start day_end], 'channel', 5 );
-
+%load the data
+ltsa = pgmatlab.loadPamguardBinaryFolder("/Users/jdjm/Dropbox/PAMGuard_dev/tutorials/MATLAB_R_Python_library/Data/LTSA/Binary2", "LTSA_*.pgdf", 1);
+sr = 384000; %samplerate in Hz
 n = 1;
-ltsa_spectrum;
 
-for i = 1 : (length(ltsa) - 1)
-    ltsa_spectrum(:, n) = ltsa(i).data(:,k)
+ltsa_spectrum=[];
+times=[];
+% Run through the ltsa data and extract the data into a 2D array to plot as
+% surface. Here we select every second LTSA data point as there are ~12,000
+% measurements and that can be hard to plot as a surface on some computers
+for i = 1 : 2 : (length(ltsa) - 1)
+    if (~isempty(ltsa(i).data))
+    ltsa_spectrum(:, n) = ltsa(i).data(:,1);
+    times(n) = ltsa(i).date;
+    n=n+1;
+    end
+
 end
 
+% Create a surface with the correct frequency and times - plot in kHz as a
+% lot easier to see. 
+freqbins = linspace(0, sr/1000/2, length( ltsa_spectrum(:,1)));
+
+%Create a grid of times and frequencies.
+[X, Y] = meshgrid(...
+    times,...
+    freqbins);
+    
+figure
+% plot the surface
+surf(X, Y, 20*log10(ltsa_spectrum), 'LineStyle', 'none')
+view(0,90)
+%set the colour limits to make the plot have correct contrast - this can be
+%a bot of trial and error
+clim([-55, -25]);
+set(gca, 'FontSize', 14)
+%show times instead of date numbers on the x axis
+datetick 'x'
+%add labels to axis
+xlabel('Time')
+ylabel('Frequency (kHz)')
+%make sure limits in time are correct to remove blank space
+xlim([min(times), max(times)])
+
 ```
+
+Execution of this code should produce an LTSA plot that looks something like this.
+
+![](./public/LTSA_matlab.png)
 
 ### R
 
@@ -595,15 +638,107 @@ Not too sure
 ### Python
 
 ```python
-import pypamguard
-start = ""
-end = ""
-channel = 5
-ltsa, _, _ = pypamguard.load_pamguard_binary_folder("./Data/LTSA/Binary")
+import numpy as np
 
-for i in range(ltsa):
-    pass
+ltsa, background, report = pypamguard.load_pamguard_binary_folder("/Users/jdjm/Dropbox/PAMGuard_dev/tutorials/MATLAB_R_Python_library/Data/LTSA/Binary2/",r"**/*.pgdf")
+
+print(type(ltsa))
+
+# Initialize variables
+ltsa_spectrum_list = [] # Use a list to dynamically collect columns
+n=1;
+sr = 384000
+times = []
+
+# Extract data into a 2D array and times
+# We only select every second LTSA data line to reduce the size of the image.
+for i in range(0, len(ltsa), 2):
+    # Check if data are empty and the channel is the same
+    if hasattr(ltsa[i], 'data') and ltsa[i].data is not None:
+        # Extract the first column of the spectrum data
+        ltsa_spectrum_list.append(ltsa[i].data[:])
+        
+        # Extract the date/time
+        times.append(ltsa[i].date)
+        
+
+# Convert the list of arrays (columns) to a single numpy array
+if ltsa_spectrum_list:
+    # Stack the columns and transpose it to match the plotting requirement (Frequency x Time)
+    ltsa_spectrum = np.stack(ltsa_spectrum_list, axis=1) 
+else:
+    print("No valid LTSA data found for the specified channel map.")
+    ltsa_spectrum = np.array([])
+
+# Ensure we have data before plotting
+if ltsa_spectrum.size > 0:
+    
+    #need to flip the arrays as they are back to front time wise. 
+    Z_db = 20 * np.log10(ltsa_spectrum[:, ::-1])
+    times = times[::-1]
+        
+    # Frequency: from 0 to calculated maximum
+    f_min = 0
+    f_max = sr/1000/2
+
+    # Time: Convert datetime objects to Matplotlib's internal date numbers
+    # imshow requires numerical values for extent
+    t_num = mdates.date2num(times)
+    t_min = t_num.min()
+    t_max = t_num.max()
+    
+    # Determine the time step size (in Matplotlib date numbers)
+    # This helps accurately place the final pixel of the image.
+    if len(t_num) > 1:
+        dt = np.mean(np.diff(t_num)) 
+    else:
+        # Assume a small duration if only one point exists (e.g., 1 hour)
+        dt = 1/24 
+    
+    # The extent defines the boundaries [xmin, xmax, ymin, ymax]
+    # We slightly extend the max time by the duration (dt) for a clean plot boundary
+    extent = [t_min, t_max + dt, f_min, f_max]
+    
+    # 4. Plot using imshow
+    fig, ax = plt.subplots(figsize=(15, 6))
+    
+    # Use imshow to plot the 2D array (Z_db)
+    # We need to transpose the data so Time is on the X-axis and Freq on the Y-axis.
+    # origin='lower' ensures frequency starts at the bottom.
+    im = ax.imshow(
+        Z_db, 
+        aspect='auto', 
+        interpolation='none',
+        origin='lower',
+        extent=extent, # Numerical limits for the axes
+        vmin=-55, # clim equivalent
+        vmax=-25  # clim equivalent
+    )
+    
+    # Set color bar
+    fig.colorbar(im, ax=ax, label='Power (dB)')
+    
+    # 5. Format the Time Axis
+    # Convert numerical time axis back to formatted datetimes
+    ax.xaxis_date() 
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S')) 
+    ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+    
+    # Set font size and labels
+    ax.tick_params(axis='both', which='major', labelsize=14)
+    ax.set_title('LTSA Spectrogram')
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Frequency (kHz)')
+    
+    fig.autofmt_xdate()
+    plt.tight_layout()
+    plt.show()
 ```
+
+
+Execution of this code should produce an LTSA plot that looks something like this.
+
+![](./public/LTSA_python.png)
 
 ::::::
 
