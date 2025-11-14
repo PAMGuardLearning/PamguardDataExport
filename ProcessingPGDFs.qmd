@@ -8,15 +8,65 @@ Various modules in PAMGuard produce binary files. Custom libraries written in MA
 
 ::: callout-note
 ### Version
-
-NOTE ABOUT VERSIONS
+These tutorials were tested with the latest version of PAMGuard, V2.2.17, and the latest versions of the MATLAB, R and Python interfaces
+We offer no guarantee that they will work with earlier versions. 
 :::
 
 ::: callout-warning
 This tutorial uses example path names from both Windows and macOS/Linux. Make sure you alter path names accordingly for all exercises
 :::
 
-INSTRUCTIONS ON INSTALLING THE SOFTWARE
+### Instruction for installing software
+
+:::::: panel-tabset
+## MATLAB
+
+1. Go to [GitHub Releases](https://github.com/PAMGuard/PAMGuardMatlab/releases)
+2. Download the latest `pgmatlab-{version}.zip` file
+3. Extract the ZIP file to your desired location
+4. Add the extracted `pgmatlab` folder to your MATLAB path:
+
+```matlab
+addpath('path/to/extracted/pgmatlab');
+```
+
+You only need to add the one pgmatlab folder to your path to use the main PAMGuard binary file functions. 
+However, if you're using any of the utility and database functions directly within your own code, 
+you'll need to either import the namespaces, import individual functions from within the namespaces, 
+or put the full namespace path in every function call:
+ 
+```matlab
+import pgmatlab.utils.*; % import PAMGuard utils functions 
+import pgmatlab.db.*; % import PAMGuard database functions
+```
+
+## R
+
+To get started with R and PAMGuard you must first install the PAMBinaries package. Start RStudio and go to _Tools -> Install Packages_. In the dialog that appears type PamBinaries and click Install. R is now setup to read PAMGaurd binary files!
+ 
+![Importing the PAMGuard R PAMBinaries library is very straightforward using the Install packages feature in RStudio](public/R_install.png). 
+
+The R library is near enough a carbon copy of the MATLAB library so the functions are all the same but the basic “syntax” is different but remember to import the library at the start of your script. 
+
+```R
+library(PamBinaries)
+```
+
+## Python
+
+To install the Python libray simply install pypamguard via pip in your Python IDE. 
+
+```python
+pip install pypamguard
+```
+
+Then make sure to import the library at the top of your script.
+
+``` python
+import pypamguard
+```
+
+::::::
 
 ### Exercise 1: Open a Click Detector Binary File
 
